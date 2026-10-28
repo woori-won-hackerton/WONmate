@@ -155,15 +155,21 @@ flowchart LR
 
 ```
 .
-├── frontend/            # Next.js 웹 (WONmate-Frontend)
-├── backend/             # Spring Boot API (WONmate-Backend)
+├── frontend/            # Next.js 웹 (서브모듈 → WONmate-Frontend)
+├── backend/             # Spring Boot API (서브모듈 → WONmate-Backend)
+├── db-init/             # DB 최초 생성 시 자동 실행되는 SQL
+│   ├── 00-extensions.sql
+│   ├── 10-mock-contracts.sql
+│   └── 20-demo-seed.sql     # 시연 계정 fc01~fc05 · 가상 고객 · 계약
 ├── documents/           # 약관 · 상품요약서 PDF + metadata.json (git 제외)
 │   └── product_01/
 │       ├── metadata.json
 │       ├── ..._약관.pdf
 │       └── ..._상품요약서.pdf
+├── docs/                # README 로고 · 화면 캡처
 ├── docker-compose.yml
-└── .env                 # 비밀 값 (git 제외)
+├── .env.example         # 환경 변수 예시
+└── .gitmodules
 ```
 </details>
 
@@ -227,10 +233,8 @@ flowchart LR
 **1. 소스 받기**
 
 ```bash
-mkdir wonmate && cd wonmate
-git clone https://github.com/woori-won-hackerton/WONmate-Frontend.git frontend
-git clone -b develop https://github.com/woori-won-hackerton/WONmate-Backend.git backend
-cp -r backend/deploy/. .        # docker-compose.yml, db-init/, .env.example
+git clone --recurse-submodules https://github.com/woori-won-hackerton/WONmate.git
+cd WONmate
 ```
 
 **2. 환경 변수 (`.env`)**

@@ -1,0 +1,8 @@
+[submodule "backend"]
+	path = backend
+	url = https://github.com/woori-won-hackerton/WONmate-Backend.git
+	branch = develop
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/woori-won-hackerton/WONmate-Frontend.git
+	branch = main
