@@ -1,0 +1,86 @@
+name: wonmate
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Seoul
+    ports:
+      - "3000:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # DB가 처음 만들어질 때 이름 순서대로 한 번 실행
+      - ./db-init/00-extensions.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
+      - ./db-init/10-mock-contracts.sql:/docker-entrypoint-initdb.d/10-mock-contracts.sql:ro
+      - ./db-init/20-demo-seed.sql:/docker-entrypoint-initdb.d/20-demo-seed.sql:ro
+    healthcheck:
+      # -h 127.0.0.1: 초기화 SQL이 다 끝난 뒤에만 healthy
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  backend:
+    image: ${DOCKER_USER:-zmfltmvl}/wonmate-backend:latest
+    platform: linux/amd64
+    build:
+      context: ./backend
+      # backend 폴더에 Dockerfile을 따로 안 만들고 여기에 바로 작성
+      dockerfile_inline: |
+        FROM eclipse-temurin:21-jdk AS build
+        WORKDIR /app
+        COPY gradlew settings.gradle build.gradle ./
+        COPY gradle gradle
+        RUN chmod +x gradlew && ./gradlew --no-daemon dependencies > /dev/null
+        COPY src src
+        RUN ./gradlew --no-daemon bootJar -x test \
+         && cp "$$(ls build/libs/*.jar | grep -v -- '-plain' | head -n 1)" /app/app.jar
+
+        FROM eclipse-temurin:21-jre
+        WORKDIR /app
+        COPY --from=build /app/app.jar app.jar
+        ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+    environment:
+      SERVER_PORT: 8080
+      # application.yaml 의 localhost 대신 db 컨테이너로 접속
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_EXPIRATION_SECONDS: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS:-1800}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # AI 챗봇: 약관 PDF 폴더 + 서버 시작 시 적재 여부
+      RAG_DOCUMENTS_DIR: /app/documents
+      RAG_INGEST_ON_STARTUP: ${RAG_INGEST_ON_STARTUP:-false}
+      TZ: Asia/Seoul
+    volumes:
+      # 루트의 documents/ (product_01 ~ … , 각 폴더에 metadata.json + PDF)
+      - ./documents:/app/documents:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: ${DOCKER_USER:-zmfltmvl}/wonmate-frontend:latest
+    platform: linux/amd64
+    build:
+      context: ./frontend
+    environment:
+      # 프론트 서버가 백엔드를 부를 주소 (도커 내부 이름)
+      BACKEND_URL: http://backend:8080
+    ports:
+      - "${FRONT_PORT:-80}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  db-data:

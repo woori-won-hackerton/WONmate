@@ -1,0 +1,16 @@
+# 비밀값 (DB 비밀번호 · JWT 키 · OpenAI 키)
+.env
+.env.*
+!.env.example
+
+# OS · 에디터
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# 로그
+*.log
+
+documents/
