@@ -195,9 +195,17 @@ flowchart LR
 
 <img src="docs/screenshots/home.png"/>
 
-### AI 챗봇
+### 상담 준비
 
 <img src="docs/screenshots/chat.png"/>
+
+### AI 챗봇
+
+<img src="docs/screenshots/record.png"/>
+
+### 지식 자료실
+
+<img src="docs/screenshots/know.png"/>
 
 ---
 
