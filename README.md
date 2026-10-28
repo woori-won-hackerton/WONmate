@@ -218,13 +218,13 @@ docker compose up -d --no-build
 
 ### 홈
 
-<img src="docs/screenshots/home.png" width="260"/> | <img src="docs/screenshots/prep.png" width="260"/> | <img src="docs/screenshots/chat.png" width="260"/>
+<img src="docs/screenshots/home.png" width="260"/>
 
 
 
 ### AI 챗봇
 
-<img src="docs/screenshots/record.png" width="260"/> | <img src="docs/screenshots/customer.png" width="260"/> | <img src="docs/screenshots/library.png" width="260"/>
+<img src="docs/screenshots/record.png" width="260"/>
 
 
 ---
